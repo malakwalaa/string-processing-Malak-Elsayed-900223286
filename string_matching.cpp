@@ -53,3 +53,31 @@ void printStatistics() {
     cout << "  Time (ms)   : " << g_timeMs << " ms" << endl;      // Execution time
     printDivider();
 }
+
+void loadFile() {
+    printDivider();
+    cout << "Load Text From File " << endl;           
+    printDivider();
+    cout << "  Enter file name: ";                     
+    string fileName;                                   
+    cin >> fileName;                                   // no spaces expected
+    cin.ignore();                                      
+
+    ifstream file(fileName);                           
+    if (!file.is_open()) {                             
+        cout << "\n  ERROR Could not open: " << fileName << endl; 
+        return;                                        
+    }
+
+    globalText = "";                                   // Clear any previously stored text
+    string line;                                       
+    while (getline(file, line)) {                      // Read the file line by line until EOF
+        if (!globalText.empty()) globalText += " ";   // Add space between lines when joining
+        globalText += line;                            // Append this line to the global text
+    }
+    file.close();                                      
+
+    cout << "\n  File loaded! (" << globalText.length() << " characters)" << endl; 
+    cout << "  Preview: " << globalText.substr(0, min((int)globalText.length(), 80)) << "..." << endl;
+}
+
