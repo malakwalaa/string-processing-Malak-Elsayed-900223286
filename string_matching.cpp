@@ -25,20 +25,23 @@ string toUpperCase(string s) {
 }
 
 // 5.3 part, Pattern Highlighting
-string highlightPattern(const string& text, const string& pattern, const vector<int>& positions) {
-    if (positions.empty()) return text;               // If no matches, return original text unchanged
+string highlightPattern(const string& text, const vector<int>& positions, int patternLen) {
+    if (positions.empty()) return text;           // if no matches return text unchanged
 
-    string result = "";                               // Will hold the final highlighted string
-    int i = 0;                                        // Current index in the text
-    int pLen = pattern.length();                      // Length of the pattern to highlight
+    string result = "";                           // will hold the final highlighted string
+    int i = 0;                                    // current position in the original text
+    int lastEnd = -1;                             // where the last highlighted match ended
 
-    for (int pos : positions) {                       // Loop through each match position
-        result += text.substr(i, pos - i);            // Append text before the match as it is
-        result += "[" + text.substr(pos, pLen) + "]"; // So that it can be highlighted with brackets []
-        i = pos + pLen;                               // Move index past the matched pattern
+    for (int pos : positions) {                   // loop through every match position
+        if (pos < lastEnd) continue;              // skip if this match starts inside a previous highlight
+        if (pos > i)                              // only append if there is text before this match
+            result += text.substr(i, pos - i);    // append text before this match unchanged
+        result += "[" + text.substr(pos, patternLen) + "]"; // wrap match in brackets
+        i = pos + patternLen;                     // advance past this match
+        lastEnd = i;                              // record where this highlight ended
     }
-    result += text.substr(i);                         // Append any remaining text after last match
-    return result;                                    // Return the highlighted string
+    result += text.substr(i);                     // append any remaining text after last match
+    return result;                                // return the fully highlighted string
 }
 
 // For better visualization
@@ -255,7 +258,7 @@ void compareAlgorithms() {
 
     if (globalText.empty()) {                     // Make sure text is loaded before comparing
         cout << "  [ERROR] No text loaded. Please load a file or enter text first." << endl;
-        return;                                  t
+        return;                                  
     }
 
     cout << "  Enter pattern to compare: ";      
@@ -299,6 +302,112 @@ void compareAlgorithms() {
     else if (rk_comp < bm_comp) cout << "Rabin-Karp (fewer comparisons)"  << endl; 
     else                         cout << "Tie (equal comparisons)"         << endl; 
     printDivider();
+}
+
+int main() {
+    int choice;
+
+    while (true) {                                        // loop until user chooses to exit
+        printDivider();
+        cout << "   String Matching Menu: "               << endl;
+        printDivider();
+        cout << "  1. Load Text File"                     << endl;
+        cout << "  2. Enter Text Manually"                << endl;
+        cout << "  3. Search Using Boyer-Moore"           << endl;
+        cout << "  4. Search Using Rabin-Karp"            << endl;
+        cout << "  5. Compare Algorithms"                 << endl;
+        cout << "  6. Exit"                               << endl;
+        printDivider();
+
+      
+        cout << "  Enter your choice: ";
+        cin >> choice;                                    
+        if (cin.fail()) {                                 // user typed something that isn't a number
+            cin.clear();                                  // clear the error flag so cin works again
+            cin.ignore(1000, '\n');                       // discard the entire bad line from buffer
+            cout << "Invalid input. Please enter a number between 1 and 6." << endl;
+            cout << endl;
+            continue;                                     
+        }
+        cin.ignore(1000, '\n');                           
+        cout << endl;
+
+        switch (choice) {
+            case 1:
+                loadFile();
+                break;
+
+            case 2:
+                manualInput();
+                break;
+
+            case 3:
+                if (globalText.empty()) {                 // make sure text is loaded first
+                    cout << "No text loaded." << endl;
+                } else {
+                    int n = 0;
+                    while (true) {                        // keep asking until a valid number is given
+                        cout << "Enter number of patterns: ";
+                        cin >> n;                         
+                        if (cin.fail() || n <= 0) {       // non-number or zero/negative
+                            cin.clear();                  
+                            cin.ignore(1000, '\n');        // discard bad input
+                            cout << "Invalid input. Please enter a positive integer." << endl;
+                        } else {                          // valid number entered
+                            cin.ignore(1000, '\n');        
+                            break;                        // exit inner loop and proceed
+                        }
+                    }
+                    for (int i = 0; i < n; i++) {         // loop for each pattern
+                        cout << "  Enter pattern " << (i + 1) << ": ";
+                        getline(cin, globalPattern);       // read full pattern including spaces
+                        boyerMooreSearch();
+                        printStatistics();
+                    }
+                }
+                break;
+
+            case 4:
+                if (globalText.empty()) {                 // make sure text is loaded first
+                    cout << "No text loaded." << endl;
+                } else {
+                    int n = 0;
+                    while (true) {                        // keep asking until a valid number is given
+                        cout << "Enter number of patterns: ";
+                        cin >> n;                         
+                        if (cin.fail() || n <= 0) {       // non-number or zero/negative
+                            cin.clear();                  
+                            cin.ignore(1000, '\n');        // discard bad input
+                            cout << "Invalid input. Please enter a positive integer." << endl;
+                        } else {                          // valid number entered
+                            cin.ignore(1000, '\n');       
+                            break;                        // exit inner loop and proceed
+                        }
+                    }
+                    for (int i = 0; i < n; i++) {         // loop for each pattern
+                        cout << "Enter pattern " << (i + 1) << ": ";
+                        getline(cin, globalPattern);       // read full pattern including spaces
+                        rabinKarpSearch();
+                        printStatistics();
+                    }
+                }
+                break;
+
+            case 5:
+                compareAlgorithms();
+                break;
+
+            case 6:
+                cout << "End" << endl;
+                return 0;                                 
+
+            default:                                      // anything outside 1-6
+                cout << "Invalid choice. Please enter a number between 1 and 6." << endl;
+        }
+        cout << endl;
+    }
+
+    return 0;
 }
 
 
