@@ -8,6 +8,9 @@
 #include <iomanip>       
 using namespace std;
 
+
+string globalPattern = ""; // The pattern entered by the user to search for
+vector<int> globalMatches; // Positions where the pattern was found
 string globalText = "";     // stores the currently loaded or entered text
 
 int   g_comparisons = 0;   // total char comparisons in last search
@@ -90,4 +93,77 @@ void manualInput() {
     getline(cin, globalText);                          // Read the entire line including spaces
     cout << "\n Text stored (" << globalText.length() << " characters)" << endl; 
 }
+
+void boyerMooreSearch() {
+    
+    g_algorithm   = "Boyer-Moore";   
+    g_comparisons = 0;               // Reset comparison counter to zero
+    g_matches     = 0;               // Reset match counter to zero
+    g_timeMs      = 0.0;             // Reset timer to zero
+    globalMatches.clear();           // Clear any previous match positions
+
+    string text    = toUpperCase(globalText);    // Convert text to uppercase for case-insensitive search
+    string pattern = toUpperCase(globalPattern); // Convert pattern to uppercase too
+    int n = text.length();                       // Length of the text being searched
+    int m = pattern.length();                    // Length of the pattern being searched for
+
+    if (m == 0 || n == 0 || m > n) {            // handle empty or impossible cases
+        cout << "  [ERROR] Invalid text or pattern." << endl;
+        return;                                  
+    }
+
+    
+    // Maps each character to its last (rightmost) position in the pattern
+    map<char, int> badChar;                      // Bad character shift table
+    for (int i = 0; i < m; i++) {               // Loop through every character in the pattern
+        badChar[pattern[i]] = i;                 // Store the last index where this character appears
+    }
+
+    
+    auto startTime = chrono::high_resolution_clock::now(); // Record the time before searching begins
+
+   
+    int s = 0;                                   
+    while (s <= n - m) {                         // Keep searching while pattern can still fit
+        int j = m - 1;                           // Start comparing from the rightmost character of pattern
+
+        // Compare pattern to text from right to left
+        while (j >= 0 && pattern[j] == text[s + j]) { // While characters match
+            g_comparisons++;                     // Count each successful comparison
+            j--;                                 // Move one step left in the pattern
+        }
+
+        if (j >= 0) g_comparisons++;             // Count the final mismatching comparison
+
+        if (j < 0) {                             // j went below 0 = full pattern matched
+            globalMatches.push_back(s);          // Save this match position
+            g_matches++;                         // Increment match counter
+            s += 1;                              // Shift by 1 to tackle overlapping matches
+        } else {
+            // use bad character rule to decide how far to shift
+            char mismatch = text[s + j];         // The text character that did not match
+            int shift = badChar.count(mismatch)  // Is this character somewhere in the pattern?
+                        ? j - badChar[mismatch]  // if Yes: shift so its last occurrence aligns with j
+                        : j + 1;                 // else No: shift pattern completely past this character
+            s += max(1, shift);                  // Always shift at least 1 to avoid infinite loop
+        }
+    }
+
+
+    auto endTime = chrono::high_resolution_clock::now();                         // Record end time
+    g_timeMs = chrono::duration<double, milli>(endTime - startTime).count();     
+
+    
+    cout << "\n  Pattern: \"" << globalPattern << "\"" << endl; // Show the searched pattern
+    if (globalMatches.empty()) {                 // No matches found
+        cout << "  Result: No match found." << endl;
+    } else {                                     // One or more matches found
+        for (int pos : globalMatches) {          // Loop through every match position
+            cout << "  Match at index: " << pos << endl; 
+        }
+        cout << "\n  Highlighted Text:" << endl; 
+        cout << "  " << highlightPattern(globalText, globalMatches, m) << endl;
+    }
+}
+
 
