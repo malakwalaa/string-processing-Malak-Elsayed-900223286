@@ -248,4 +248,57 @@ void rabinKarpSearch() {
     }
 }
 
+void compareAlgorithms() {
+    printDivider();
+    cout << " Comparing Algorithms" << endl;     
+    printDivider();
+
+    if (globalText.empty()) {                     // Make sure text is loaded before comparing
+        cout << "  [ERROR] No text loaded. Please load a file or enter text first." << endl;
+        return;                                  t
+    }
+
+    cout << "  Enter pattern to compare: ";      
+    cin.ignore();                                 
+    getline(cin, globalPattern);                 
+
+  
+    cout << "\n  Running Boyer-Moore: " << endl; 
+    boyerMooreSearch();                           
+    // Save Boyer-Moore stats before Rabin-Karp overwrites global variables
+    int    bm_comp    = g_comparisons;            
+    int    bm_matches = g_matches;                
+    double bm_time    = g_timeMs;                 
+    vector<int> bmPos = globalMatches;            
+    printStatistics();                            
+
+   
+    cout << "\n  Running Rabin-Karp: " << endl;  
+    rabinKarpSearch();                            
+    // Save Rabin-Karp stats
+    int    rk_comp    = g_comparisons;            
+    int    rk_matches = g_matches;                
+    double rk_time    = g_timeMs;                 
+    printStatistics();                            
+
+   
+    printDivider();
+    cout << "  Summary of Comparison: " << endl;
+    printDivider();
+    cout << "  Metric          | Boyer-Moore     | Rabin-Karp     " << endl;
+    cout << "  ----------------+-----------------+----------------" << endl;
+    cout << "  Comparisons     | " << setw(15) << bm_comp    << " | " << setw(15) << rk_comp    << endl;
+    cout << fixed << setprecision(4);
+    cout << "  Time (ms)       | " << setw(15) << bm_time    << " | " << setw(15) << rk_time    << endl;
+    cout << "  Matches Found   | " << setw(15) << bm_matches << " | " << setw(15) << rk_matches << endl;
+
+    
+    printDivider();
+    cout << "  Best Performer: ";
+    if (bm_comp < rk_comp)      cout << "Boyer-Moore (fewer comparisons)" << endl; 
+    else if (rk_comp < bm_comp) cout << "Rabin-Karp (fewer comparisons)"  << endl; 
+    else                         cout << "Tie (equal comparisons)"         << endl; 
+    printDivider();
+}
+
 
