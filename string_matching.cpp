@@ -165,5 +165,87 @@ void boyerMooreSearch() {
         cout << "  " << highlightPattern(globalText, globalMatches, m) << endl;
     }
 }
+void rabinKarpSearch() {
+    
+    g_algorithm   = "Rabin-Karp";    
+    g_comparisons = 0;               // Reset comparison counter
+    g_matches     = 0;               // Reset match counter
+    g_timeMs      = 0.0;             // Reset timer
+    globalMatches.clear();           // Clear previous match positions
+
+    string text    = toUpperCase(globalText);    // Uppercase text for case insensitive search
+    string pattern = toUpperCase(globalPattern); // Uppercase pattern too
+    int n = text.length();                       // Length of the text
+    int m = pattern.length();                    // Length of the pattern
+
+    if (m == 0 || n == 0 || m > n) {            //invalid or impossible input
+        cout << "  [ERROR] Invalid text or pattern." << endl;
+        return;                                 
+    }
+
+   
+    const int BASE = 256;            // number of possible ASCII characters
+    const int MOD  = 101;            // a prime number to keep hash values small
+
+    int patternHash = 0;             // Hash value computed from the pattern
+    int textHash    = 0;             
+    int h           = 1;             
+
+    
+    auto startTime = chrono::high_resolution_clock::now(); // Record start time
+
+    // Compute h = BASE^(m-1) % MOD
+    for (int i = 0; i < m - 1; i++) { // Loop m-1 times
+        h = (h * BASE) % MOD;          // Multiply by BASE each time and keep within MOD
+    }
+
+    // Compute initial hash for pattern and first window of text
+    for (int i = 0; i < m; i++) {                              // Loop through first m characters
+        patternHash = (BASE * patternHash + pattern[i]) % MOD; // Build pattern hash
+        textHash    = (BASE * textHash    + text[i])    % MOD; // Build first window hash
+    }
+
+   
+    for (int i = 0; i <= n - m; i++) {    // Slide window one character at a time across text
+        g_comparisons++;                   // Count this hash comparison
+
+        if (patternHash == textHash) {     
+            bool match = true;             // Assume it's a real match until proven otherwise
+            for (int k = 0; k < m; k++) { // Verify character by character
+                g_comparisons++;           // Count each character comparison
+                if (text[i + k] != pattern[k]) { // Characters differ: this was a false positive
+                    match = false;         // Mark as not a real match
+                    break;                 
+                }
+            }
+            if (match) {                   // All characters matched: confirmed real match
+                globalMatches.push_back(i);// Save this match position
+                g_matches++;               // Increment match counter
+            }
+        }
+
+        
+        if (i < n - m) {                                                    // Don't compute past end
+            textHash = (BASE * (textHash - text[i] * h) + text[i + m]) % MOD; // Remove left, add right
+            if (textHash < 0) textHash += MOD;  // Handle negative values 
+        }
+    }
+
+  
+    auto endTime = chrono::high_resolution_clock::now();                     // Record end time
+    g_timeMs = chrono::duration<double, milli>(endTime - startTime).count(); 
+
+   
+    cout << "\n  Pattern: \"" << globalPattern << "\"" << endl; // Show searched pattern
+    if (globalMatches.empty()) {             // No matches found
+        cout << "  Result: No match found." << endl;
+    } else {                                 // One or more matches found
+        for (int pos : globalMatches) {      // Loop through all match positions
+            cout << "  Match at index: " << pos << endl; 
+        }
+        cout << "\n  Highlighted Text:" << endl; 
+        cout << "  " << highlightPattern(globalText, globalMatches, m) << endl;
+    }
+}
 
 
