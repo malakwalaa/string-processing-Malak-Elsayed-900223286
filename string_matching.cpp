@@ -81,3 +81,13 @@ void loadFile() {
     cout << "  Preview: " << globalText.substr(0, min((int)globalText.length(), 80)) << "..." << endl;
 }
 
+void manualInput() {
+    printDivider();
+    cout << "Manual Text Input" << endl;             
+    printDivider();
+    cout << "  Enter text: ";                          
+    cin.ignore();                                     
+    getline(cin, globalText);                          // Read the entire line including spaces
+    cout << "\n Text stored (" << globalText.length() << " characters)" << endl; 
+}
+
