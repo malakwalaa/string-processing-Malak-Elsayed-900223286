@@ -38,3 +38,18 @@ string highlightPattern(const string& text, const string& pattern, const vector<
     return result;                                    // Return the highlighted string
 }
 
+// For better visualization
+void printDivider() {
+    cout << "=============================================" << endl; 
+}
+//5.6 Statistics Output
+void printStatistics() {
+    printDivider();
+    cout << "  Search Statistics" << endl;                         // Header label
+    printDivider();
+    cout << "  Algorithm   : " << g_algorithm   << endl;          // Which algorithm ran
+    cout << "  Comparisons : " << g_comparisons << endl;          // Total comparisons made
+    cout << "  Matches     : " << g_matches     << endl;          // Total matches found
+    cout << "  Time (ms)   : " << g_timeMs << " ms" << endl;      // Execution time
+    printDivider();
+}
